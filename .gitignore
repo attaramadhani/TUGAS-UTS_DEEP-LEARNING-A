@@ -1,0 +1,24 @@
+# Dataset images (~150MB) - diunduh otomatis via download_and_verify.py
+data/
+data/lung_cancer/
+
+# Model weights
+*.keras
+*.h5
+outputs/models/
+
+# Python cache & Jupyter checkpoints
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+*.egg-info/
+.venv/
+env/
+venv/
+
+# Scratch & temporary helper scripts
+build_notebook.py
+build_full_uts_notebook.py
+run_experiments.py
+UTS_Deep_Learning_CNN.ipynb

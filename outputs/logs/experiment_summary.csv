@@ -1,0 +1,9 @@
+Skenario,Test Loss,Test Accuracy (%),Macro Precision (%),Macro Recall (%),Macro F1-Score (%),Training Time (s)
+Skenario 1A (Split 70:15:15),0.2515,89.7,92.92,80.16,83.26,17.77
+Skenario 1B (Split 80:10:10 - Baseline),0.1975,91.82,93.95,81.35,84.69,19.0
+Skenario 1C (Split 90:05:05),0.0682,96.36,92.86,92.86,92.86,22.51
+Skenario 2 (Dengan Augmentasi),0.695,73.64,48.78,54.96,51.65,23.89
+Skenario 3A (Optimizer RMSprop),0.226,90.91,90.27,84.33,86.72,19.96
+Skenario 3B (Optimizer SGD Momentum),0.7896,64.55,42.92,46.83,44.27,20.74
+Skenario 4A (Dropout 0.0 - Tanpa Regularisasi),0.2466,93.64,95.23,84.92,88.1,21.34
+Skenario 4B (Dropout 0.5 - Regularisasi Kuat),0.273,86.36,90.29,73.02,75.88,21.03

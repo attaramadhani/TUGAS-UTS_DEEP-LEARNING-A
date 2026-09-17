@@ -1,0 +1,5 @@
+Tahap,Pemenang,Konfigurasi Terpilih,Test Accuracy (%),Macro F1 (%),Test Loss
+Tahap 1 (Data Split),Skenario 1C (Split 90:05:05),Split 90:05:05,98.18181991577148,96.19450317124736,0.04026675969362259
+Tahap 2 (Data Augmentation),Skenario 2A (Tanpa Augmentasi — dari Skenario 1C (Split 90:05:05)),Tanpa Augmentasi (Citra Murni),98.18181991577148,96.19450317124736,0.04026675969362259
+Tahap 3 (Optimizer),Skenario 3A (Optimizer Adam),Optimizer ADAM (lr=0.0005),98.18181991577148,96.19450317124736,0.04026675969362259
+Tahap 4 (Dropout Regularization),Skenario 4B (Dropout 0.3 — Regularisasi Sedang),Dropout Rate = 0.3,98.18181991577148,96.19450317124736,0.04026675969362259

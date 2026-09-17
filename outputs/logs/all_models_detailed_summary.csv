@@ -1,0 +1,12 @@
+Tahap / Skenario,Nama Eksperimen,Test Loss,Test Accuracy (%),Precision (%),Recall (%),F1-Score (%),Waktu Pelatihan (s)
+Skenario 1,Skenario 1A (Split 70:15:15),0.1626,93.94,95.42,87.3,90.1,17.73
+Skenario 1,Skenario 1B (Split 80:10:10),0.2163,90.91,93.35,80.75,84.09,18.67
+Skenario 1,Skenario 1C (Split 90:05:05),0.0403,98.18,98.48,94.44,96.19,20.98
+Skenario 2,Skenario 2A (Tanpa Augmentasi — dari Skenario 1C (Split 90:05:05)),0.0403,98.18,98.48,94.44,96.19,20.98
+Skenario 2,Skenario 2B (Dengan Augmentasi pada Split 90:05:05),0.6261,67.27,46.11,48.41,45.86,25.83
+Skenario 3,Skenario 3A (Optimizer Adam),0.0403,98.18,98.48,94.44,96.19,20.98
+Skenario 3,Skenario 3B (Optimizer RMSprop),0.3143,87.27,84.72,88.89,84.44,21.58
+Skenario 3,Skenario 3C (Optimizer SGD Momentum),0.8327,54.55,35.73,40.08,37.78,21.69
+Skenario 4,Skenario 4A (Dropout 0.0 — Tanpa Regularisasi),0.1979,96.36,91.67,96.83,93.57,22.05
+Skenario 4,Skenario 4B (Dropout 0.3 — Regularisasi Sedang),0.0403,98.18,98.48,94.44,96.19,20.98
+Skenario 4,Skenario 4C (Dropout 0.5 — Regularisasi Kuat),0.1657,92.73,90.08,90.08,90.08,21.92

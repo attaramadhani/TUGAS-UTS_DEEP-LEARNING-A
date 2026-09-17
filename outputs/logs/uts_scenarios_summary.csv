@@ -1,0 +1,5 @@
+Skenario,Test Loss,Test Accuracy (%),Precision (%),Recall (%),F1-Score (%),Durasi (s)
+Skenario 1 (Tanpa Augmentasi - Baseline),0.2823,89.09,92.12,75.0,77.83,18.92
+Skenario 2 (Dengan Augmentasi),0.7417,70.0,46.88,52.78,49.26,22.04
+Skenario 3 (Optimizer RMSprop),0.1856,93.64,92.45,88.89,90.42,18.14
+Skenario 4 (Tanpa Dropout 0.0),0.1457,94.55,95.95,89.48,92.11,19.58
