@@ -89,28 +89,24 @@ Model yang digunakan adalah arsitektur *Deep Convolutional Neural Network* modul
 
 ---
 
-## 📁 Struktur File Repositori
+## 📁 Struktur File Repositori (Hanya File Penting)
 
 ```text
 TUGAS-UTS_DEEP-LEARNING-A/
 │
-├── .gitignore                                  # Mengabaikan file dataset besar & binary model
+├── .gitignore                                  # Mengabaikan dataset lokal besar & model biner keras
 ├── README.md                                   # Dokumentasi lengkap & ringkasan hasil
-├── download_and_verify.py                      # Skrip pengunduh otomatis dataset resmi
-├── run_progressive_pipeline.py                 # Pipeline eksekusi 4 skenario bertingkat
-├── generate_report_docx.py                     # Skrip pembuat dokumen laporan Word formal
 │
-├── Tugas_UTS_CNN_IQOTHNCCD.ipynb               # Jupyter Notebook lengkap dengan visualisasi output
-├── Laporan_Lengkap_UTS_DeepLearning_CNN.docx   # Dokumen laporan resmi UTS berformat Word
+├── main.py                                     # PROGRAM UTAMA TERPADU: Download, Preprocess,
+│                                               # Arsitektur CNN, 4 Skenario Bertingkat,
+│                                               # Evaluasi Grafik 300 DPI, & Generator Laporan Word
 │
-├── src/                                        # Modul Python fungsional
-│   ├── __init__.py
-│   ├── data_preprocessing.py                   # Pemuatan, normalisasi, & augmentasi citra
-│   ├── model_builder.py                        # Arsitektur Conv-ReLU-Pool CNN & kompilasi
-│   └── evaluation_utils.py                     # Metrik evaluasi, kurva pelatihan, confusion matrix
+├── Tugas_UTS_CNN_IQOTHNCCD.ipynb               # Jupyter Notebook siap eksekusi di Google Colab
+│                                               # Dilengkapi fitur auto-backup ke Google Drive
+├── Laporan_Lengkap_UTS_DeepLearning_CNN.docx   # Dokumen laporan resmi UTS berformat Microsoft Word
 │
 └── outputs/                                    # Artefak visualisasi & catatan log
-    ├── figures/                                # Grafik komparasi, confusion matrix, & ROC (300 DPI)
+    ├── figures/                                # Grafik kurva loss/akurasi, confusion matrix, & progresi
     └── logs/                                   # Rekapitulasi riwayat pelatihan CSV & JSON
 ```
 
@@ -118,30 +114,33 @@ TUGAS-UTS_DEEP-LEARNING-A/
 
 ## 🚀 Panduan Menjalankan Kode Program
 
-### 1. Klon Repositori & Persiapan Lingkungan
+### A. Menjalankan di Google Colab (Paling Praktis)
+1. Klik tombol badge berikut untuk membuka notebook langsung di Google Colab:
+   [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/attaramadhani/TUGAS-UTS_DEEP-LEARNING-A/blob/main/Tugas_UTS_CNN_IQOTHNCCD.ipynb)
+2. Pastikan Runtime menggunakan GPU (Menu: *Runtime* -> *Change runtime type* -> *T4 GPU*).
+3. Jalankan seluruh sel secara berurutan (*Runtime* -> *Run all*).
+4. Pada **Langkah 18 (Sel Terakhir)**, Colab akan meminta izin menghubungkan ke **Google Drive**. Seluruh grafik visualisasi (`outputs/`) dan file Word (`Laporan_Lengkap_UTS_DeepLearning_CNN.docx`) akan otomatis tersimpan rapi di folder Google Drive Anda:
+   `MyDrive/TUGAS_UTS_DEEP_LEARNING_A_KELOMPOK_6/`
+
+### B. Menjalankan Secara Lokal via Terminal (`main.py`)
 ```bash
+# 1. Klon Repositori
 git clone https://github.com/attaramadhani/TUGAS-UTS_DEEP-LEARNING-A.git
 cd TUGAS-UTS_DEEP-LEARNING-A
+
+# 2. Instal Pustaka Pendukung
 pip install tensorflow numpy pandas scikit-learn matplotlib seaborn pillow kagglehub python-docx
-```
 
-### 2. Unduh Dataset Secara Otomatis
-```bash
-python download_and_verify.py
-```
+# 3. Eksekusi Program Utama (Menjalankan seluruh alur bertingkat + Word Report)
+python main.py
 
-### 3. Jalankan Eksperimen Optimasi Bertingkat (Progressive Pipeline)
-```bash
-python run_progressive_pipeline.py
-```
+# Opsi lain:
+# Hanya unduh dataset:
+python main.py --download-only
 
-### 4. Buat Dokumen Laporan Word (.docx) Lengkap
-```bash
-python generate_report_docx.py
+# Hanya buat ulang file laporan Word dari log:
+python main.py --report-only
 ```
-
-### 5. Membuka Jupyter Notebook
-Buka `Tugas_UTS_CNN_IQOTHNCCD.ipynb` menggunakan VS Code, Jupyter Lab, atau unggah langsung ke **Google Colab**. Seluruh blok kode telah tereksekusi rapi dan menyajikan kurva pelatihan serta matriks evaluasi interaktif.
 
 ---
 
