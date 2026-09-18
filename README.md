@@ -101,13 +101,16 @@ TUGAS-UTS_DEEP-LEARNING-A/
 │                                               # Arsitektur CNN, 4 Skenario Bertingkat,
 │                                               # Evaluasi Grafik 300 DPI, & Generator Laporan Word
 │
+├── cache.pkl                                   # SMART CACHE MEMORY: Menyimpan hasil eksperimen lengkap
+│                                               # agar dapat dimuat instan di Google Colab / lokal
 ├── Tugas_UTS_CNN_IQOTHNCCD.ipynb               # Jupyter Notebook siap eksekusi di Google Colab
-│                                               # Dilengkapi fitur auto-backup ke Google Drive
+│                                               # Dilengkapi fitur auto-backup ke Google Drive & Smart Cache
 ├── Laporan_Lengkap_UTS_DeepLearning_CNN.docx   # Dokumen laporan resmi UTS berformat Microsoft Word
 │
 └── outputs/                                    # Artefak visualisasi & catatan log
     ├── figures/                                # Grafik kurva loss/akurasi, confusion matrix, & progresi
-    └── logs/                                   # Rekapitulasi riwayat pelatihan CSV & JSON
+    ├── logs/                                   # Rekapitulasi riwayat pelatihan CSV & JSON
+    └── cache.pkl                               # Cadangan memori cache hasil eksperimen
 ```
 
 ---
@@ -118,9 +121,11 @@ TUGAS-UTS_DEEP-LEARNING-A/
 1. Klik tombol badge berikut untuk membuka notebook langsung di Google Colab:
    [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/attaramadhani/TUGAS-UTS_DEEP-LEARNING-A/blob/main/Tugas_UTS_CNN_IQOTHNCCD.ipynb)
 2. Pastikan Runtime menggunakan GPU (Menu: *Runtime* -> *Change runtime type* -> *T4 GPU*).
-3. Jalankan seluruh sel secara berurutan (*Runtime* -> *Run all*).
-4. Pada **Langkah 18 (Sel Terakhir)**, Colab akan meminta izin menghubungkan ke **Google Drive**. Seluruh grafik visualisasi (`outputs/`) dan file Word (`Laporan_Lengkap_UTS_DeepLearning_CNN.docx`) akan otomatis tersimpan rapi di folder Google Drive Anda:
-   `MyDrive/TUGAS_UTS_DEEP_LEARNING_A_KELOMPOK_6/`
+3. Jalankan sel berurutan atau klik *Runtime* -> *Run all*.
+4. Pada **Langkah 1**, Colab akan meminta izin menghubungkan **Google Drive**. Setujui izin tersebut agar seluruh grafik visualisasi, file `cache.pkl`, dan laporan Word otomatis tersimpan ke Google Drive Anda.
+5. **Fitur Smart Cache (`cache.pkl`)**: 
+   - Karena file `cache.pkl` telah tersedia di repositori, notebook akan otomatis memuat hasil eksperimen secara instan tanpa perlu menunggu waktu training berulang-ulang.
+   - Jika ingin melatih model dari awal secara manual, cukup ubah `FORCE_RETRAIN = True` di Langkah 1.
 
 ### B. Menjalankan Secara Lokal via Terminal (`main.py`)
 ```bash

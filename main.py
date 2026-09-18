@@ -555,6 +555,23 @@ def run_progressive_pipeline():
     with open(os.path.join(LOGS_DIR, 'progressive_pipeline_results.json'), 'w') as f:
         json.dump(serializable_dict, f, indent=2)
 
+    # Simpan Smart Cache (cache.pkl) untuk Google Colab
+    import pickle
+    cache_data = {
+        'pipeline_results': serializable_dict,
+        'progressive_stages': df_prog.to_dict(orient='records'),
+        'all_models_summary': all_models_summary,
+        'champion_model': serializable_dict['Skenario 4'][1] if len(serializable_dict.get('Skenario 4', [])) > 1 else serializable_dict['Skenario 4'][0],
+        'class_names': CLASS_NAMES,
+        'c_labels': C_LABELS,
+        'final_benchmark_df': df_prog
+    }
+    with open(os.path.join(BASE_DIR, 'cache.pkl'), 'wb') as f:
+        pickle.dump(cache_data, f, protocol=pickle.HIGHEST_PROTOCOL)
+    with open(os.path.join(OUTPUTS_DIR, 'cache.pkl'), 'wb') as f:
+        pickle.dump(cache_data, f, protocol=pickle.HIGHEST_PROTOCOL)
+    print(f"[CACHE] Smart cache memory disimpan di: {os.path.join(BASE_DIR, 'cache.pkl')}")
+
     # Plot Visualisasi
     plot_progressive_progression(df_prog, os.path.join(FIGURES_DIR, 'progressive_progression_bar.png'))
     plot_scenario_internal_comparisons(pipeline_results, os.path.join(FIGURES_DIR, 'internal_scenario_comparisons.png'))
