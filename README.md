@@ -13,9 +13,9 @@
 | No. | Nama Lengkap | NIM | Kelas | Program Studi |
 | :---: | :--- | :---: | :---: | :---: |
 | 1. | **Attala Alif Ramadhani Tri Hida** | `230441100144` (23-144) | Deep Learning (A) | Sistem Informasi |
-| 2. | **Nafaul Hernanda Romadlona** | `240441100125` (24-125) | Deep Learning (A) | Sistem Informasi |
+| 2. | **Naufal Husain** | `240441100038` (24-038) | Deep Learning (A) | Sistem Informasi |
 | 3. | **M.Rafly Kurniawan** | `240441100086` (24-086) | Deep Learning (A) | Sistem Informasi |
-| 4. | **Naufal Husain** | `240441100038` (24-038) | Deep Learning (A) | Sistem Informasi |
+| 4. | **Nafaul Hernanda Romadlona** | `240441100125` (24-125) | Deep Learning (A) | Sistem Informasi |
 
 * **Dosen Pengampu:** Dr. Wahyudi Setiawan, S.Kom., M.Kom.  
 * **Program Studi:** S1 Sistem Informasi, Fakultas Teknik, Universitas Trunojoyo Madura  

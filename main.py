@@ -7,9 +7,9 @@ DATASET: THE IQ-OTHNCCD LUNG CANCER CT-SCAN DATASET (MENDELEY DATA DOI: 10.17632
 
 👥 IDENTITAS KELOMPOK 6:
 1. Attala Alif Ramadhani Tri Hida (NIM: 230441100144 / 23-144)
-2. Nafaul Hernanda Romadlona      (NIM: 240441100125 / 24-125)
+2. Naufal Husain                  (NIM: 240441100038 / 24-038)
 3. M.Rafly Kurniawan              (NIM: 240441100086 / 24-086)
-4. Naufal Husain                  (NIM: 240441100038 / 24-038)
+4. Nafaul Hernanda Romadlona      (NIM: 240441100125 / 24-125)
 
 Dosen Pengampu: Dr. Wahyudi Setiawan, S.Kom., M.Kom.
 Program Studi : S1 Sistem Informasi, Fakultas Teknik, Universitas Trunojoyo Madura
@@ -704,7 +704,7 @@ def generate_word_report(report_path=REPORT_PATH):
     meta_info = [
         ("Dosen Pengampu", ": Dr. Wahyudi Setiawan, S.Kom., M.Kom."),
         ("Kelompok", ": Kelompok 6"),
-        ("Anggota Kelompok", ": 1. Attala Alif Ramadhani Tri Hida (230441100144)\n  2. Nafaul Hernanda Romadlona (240441100125)\n  3. M.Rafly Kurniawan (240441100086)\n  4. Naufal Husain (240441100038)"),
+        ("Anggota Kelompok", ": 1. Attala Alif Ramadhani Tri Hida (230441100144)\n  2. Naufal Husain (240441100038)\n  3. M.Rafly Kurniawan (240441100086)\n  4. Nafaul Hernanda Romadlona (240441100125)"),
         ("Program Studi / Kelas", ": Sistem Informasi / Deep Learning (A)"),
         ("Sumber Dataset", ": Mendeley Data (DOI: 10.17632/bhmdr45bh2.2)"),
         ("Metodologi Eksperimen", ": Eksperimen Optimasi Bertingkat (Progressive Ablation Study)")
