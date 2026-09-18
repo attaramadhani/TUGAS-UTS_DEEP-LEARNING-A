@@ -5,7 +5,9 @@ data/lung_cancer/
 # Model weights
 *.keras
 *.h5
-outputs/models/
+
+# Hasil eksperimen dan output visualisasi (hanya disimpan secara lokal & Google Drive)
+outputs/
 
 # Python cache & Jupyter checkpoints
 __pycache__/

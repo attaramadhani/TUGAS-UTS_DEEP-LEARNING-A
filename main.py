@@ -219,6 +219,8 @@ def build_cnn_model(dropout_rate=0.3, model_name='Custom_Lung_CNN'):
     ], name=model_name)
     return model
 
+build_model = build_cnn_model
+
 
 def compile_custom(model, opt_name='adam', lr=LEARNING_RATE):
     """
@@ -270,6 +272,30 @@ def train_and_eval(name, model, train_data, val_data, test_data, is_augmented=Fa
     cr = classification_report(y_test, y_pred, target_names=C_LABELS, output_dict=True, zero_division=0)
 
     print(f"[{name}] HASIL -> Akurasi: {test_acc*100:.2f}% | Loss: {test_loss:.4f} | F1: {f1_mac*100:.2f}% | Waktu: {dur:.1f}s")
+
+    # Simpan kurva pelatihan individual ke figures/
+    fig_h, (ax_l, ax_a) = plt.subplots(1, 2, figsize=(12, 4))
+    fig_h.patch.set_facecolor('#F8F9FA')
+    ep_r = range(1, len(hist.history['loss']) + 1)
+    ax_l.plot(ep_r, hist.history['loss'], 'o-', label='Train Loss', color='#1F77B4')
+    ax_l.plot(ep_r, hist.history['val_loss'], 's--', label='Val Loss', color='#D62728')
+    ax_l.set_title(f"Loss: {name}", fontsize=11, fontweight='bold')
+    ax_l.set_xlabel('Epoch')
+    ax_l.legend()
+    ax_l.grid(True, linestyle=':', alpha=0.6)
+
+    ax_a.plot(ep_r, [a * 100 for a in hist.history['accuracy']], 'o-', label='Train Acc', color='#2CA02C')
+    ax_a.plot(ep_r, [a * 100 for a in hist.history['val_accuracy']], 's--', label='Val Acc', color='#FF7F0E')
+    ax_a.set_title(f"Akurasi: {name} (Test: {test_acc * 100:.2f}%)", fontsize=11, fontweight='bold')
+    ax_a.set_xlabel('Epoch')
+    ax_a.legend()
+    ax_a.grid(True, linestyle=':', alpha=0.6)
+    plt.tight_layout()
+    safe_name = name.split('(')[0].strip().replace(' ', '_')
+    hist_dest = os.path.join(FIGURES_DIR, f"history_{safe_name}.png")
+    fig_h.savefig(hist_dest, dpi=300, bbox_inches='tight')
+    plt.close(fig_h)
+
     return {
         'name': name,
         'model': model,
@@ -393,6 +419,50 @@ def plot_champion_evaluation(champ, save_path):
     print(f"[PLOT] Evaluasi model pemenang disimpan ke: {save_path}")
 
 
+def plot_sample_ct_scans(X, y, save_path):
+    fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
+    fig.patch.set_facecolor('#F8F9FA')
+    for idx, dname in enumerate(DISPLAY_NAMES):
+        matches = np.where(y == idx)[0]
+        if len(matches) > 0:
+            sample_idx = matches[0]
+            axes[idx].imshow(X[sample_idx])
+            axes[idx].set_title(f"Kelas: {dname}\nTotal: {np.bincount(y)[idx]} citra", fontsize=12, fontweight='bold', pad=8)
+        axes[idx].axis('off')
+    plt.suptitle("Sampel Citra CT-Scan Thoraks IQ-OTH/NCCD (Ukuran Input 128x128)", fontsize=14, fontweight='bold', y=1.03)
+    plt.tight_layout()
+    fig.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    print(f"[PLOT] Sampel citra CT-Scan disimpan ke: {save_path}")
+
+
+def plot_error_analysis(champ, X_test, y_test, save_path):
+    y_true_arr = np.array(champ['y_test'])
+    y_pred_arr = np.array(champ['y_pred'])
+    err_indices = np.where(y_true_arr != y_pred_arr)[0]
+    print(f"[ERROR ANALYSIS] Total citra salah prediksi pada Champion Model: {len(err_indices)} dari {len(y_true_arr)} citra uji")
+
+    if len(err_indices) > 0:
+        n_show = min(3, len(err_indices))
+        fig, axes = plt.subplots(1, n_show, figsize=(13, 4))
+        if n_show == 1:
+            axes = [axes]
+        fig.patch.set_facecolor('#F8F9FA')
+        for i, idx in enumerate(err_indices[:n_show]):
+            axes[i].imshow(X_test[idx])
+            act_n = C_LABELS[y_true_arr[idx]]
+            prd_n = C_LABELS[y_pred_arr[idx]]
+            axes[i].set_title(f"Aktual: {act_n}\nPrediksi: {prd_n}", fontsize=11, fontweight='bold', color='red')
+            axes[i].axis('off')
+        plt.suptitle("Contoh Citra Uji yang Mengalami Misklasifikasi (Final Champion)", fontsize=13, fontweight='bold', y=1.05)
+        plt.tight_layout()
+        fig.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.close(fig)
+        print(f"[PLOT] Analisis kesalahan prediksi disimpan ke: {save_path}")
+    else:
+        print("Sempurna! Tidak ada sampel yang salah diprediksi pada testing set.")
+
+
 # ==============================================================================
 # 6. PIPELINE EKSPERIMEN BERTINGKAT (4 SKENARIO PROGRESSIVE)
 # ==============================================================================
@@ -403,6 +473,9 @@ def run_progressive_pipeline():
     """
     download_and_verify()
     X, y, _ = load_images_from_directory(DATA_DIR)
+
+    # Simpan visualisasi sampel dataset
+    plot_sample_ct_scans(X, y, os.path.join(FIGURES_DIR, 'sample_ct_scans.png'))
 
     pipeline_results = {}
     progressive_stages = []
@@ -581,6 +654,7 @@ def run_progressive_pipeline():
     plot_progressive_progression(df_prog, os.path.join(FIGURES_DIR, 'progressive_progression_bar.png'))
     plot_scenario_internal_comparisons(pipeline_results, os.path.join(FIGURES_DIR, 'internal_scenario_comparisons.png'))
     plot_champion_evaluation(champion_model_res, os.path.join(FIGURES_DIR, 'champion_model_evaluation.png'))
+    plot_error_analysis(champion_model_res, best_test[0], best_test[1], os.path.join(FIGURES_DIR, 'error_analysis_samples.png'))
 
     # Generate Laporan Word
     if HAS_DOCX:
