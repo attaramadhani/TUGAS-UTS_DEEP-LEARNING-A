@@ -6,6 +6,7 @@
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![Dataset: Mendeley Data](https://img.shields.io/badge/Mendeley_Data-10.17632%2Fbhmdr45bh2.2-blue)](https://doi.org/10.17632/bhmdr45bh2.2)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/attaramadhani/TUGAS-UTS_DEEP-LEARNING-A/blob/main/Tugas_UTS_CNN_IQOTHNCCD.ipynb)
+[![Google Drive](https://img.shields.io/badge/Google_Drive-Hasil_Eksperimen_UTS-34A853?logo=googledrive&logoColor=white)](https://drive.google.com/drive/folders/1suEYnYWUooZMnR6i1GrlLWoH9XsE3PEd?usp=sharing)
 
 ---
 
@@ -19,6 +20,7 @@
 
 * **Dosen Pengampu:** Dr. Wahyudi Setiawan, S.Kom., M.Kom.  
 * **Program Studi:** S1 Sistem Informasi, Fakultas Teknik, Universitas Trunojoyo Madura  
+* **Penyimpanan Hasil (Google Drive):** [📁 Akses Folder Hasil Eksperimen & Laporan Word UTS](https://drive.google.com/drive/folders/1suEYnYWUooZMnR6i1GrlLWoH9XsE3PEd?usp=sharing)
 
 ---
 
@@ -29,6 +31,11 @@ Repository ini berisi implementasi lengkap tugas Ujian Tengah Semester (UTS) mat
 3. **Normal cases** (Jaringan Sehat)
 
 Eksperimen dirancang dengan paradigma **Optimasi Bertingkat (Progressive Ablation Study)**: 1 arsitektur dasar CNN yang sama dievaluasi melalui 4 skenario optimasi berantai. Konfigurasi terbaik dari tiap skenario diwariskan sebagai fondasi pengujian pada skenario berikutnya hingga terpilih model akhir (**Final Champion Model**).
+
+> [!NOTE]
+> **📂 Akses Publik Berkas Hasil Eksperimen di Google Drive:**  
+> Seluruh artefak hasil eksperimen lengkap (berkas bobot model `final_champion_model.keras`, gambar grafik evaluasi 300 DPI di `figures/`, log metrik di `logs/`, `cache.pkl`, dan dokumen Microsoft Word resmi `Laporan_Lengkap_UTS_DeepLearning_CNN.docx`) dapat diakses dan diunduh langsung melalui tautan Google Drive resmi berikut:  
+> 🔗 **[Google Drive — Folder Hasil Eksperimen UTS Deep Learning](https://drive.google.com/drive/folders/1suEYnYWUooZMnR6i1GrlLWoH9XsE3PEd?usp=sharing)**
 
 ---
 
@@ -120,7 +127,7 @@ TUGAS-UTS_DEEP-LEARNING-A/
    [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/attaramadhani/TUGAS-UTS_DEEP-LEARNING-A/blob/main/Tugas_UTS_CNN_IQOTHNCCD.ipynb)
 2. Pastikan Runtime menggunakan GPU (Menu: *Runtime* -> *Change runtime type* -> *T4 GPU*).
 3. Di **Langkah 1**:
-   - Jika Anda memiliki folder tujuan khusus di Google Drive (misalnya nama folder dari link sharing Drive Anda), Anda dapat mengisi variabel `TARGET_FOLDER_NAME = "NAMA_FOLDER_ANDA"`. Secara default folder akan bernama `TUGAS_UTS_DEEP_LEARNING_A`.
+   - Jika Anda memiliki folder tujuan khusus di Google Drive (misalnya nama folder dari link sharing Drive Anda), Anda dapat mengisi variabel `TARGET_FOLDER_NAME = "NAMA_FOLDER_ANDA"`. Secara default folder akan bernama `TUGAS_UTS_DEEP_LEARNING_A` (sesuai folder publik: [Google Drive Hasil Eksperimen](https://drive.google.com/drive/folders/1suEYnYWUooZMnR6i1GrlLWoH9XsE3PEd?usp=sharing)).
    - Setujui *prompt* otorisasi akun saat Google Drive di-mount.
 4. Klik *Runtime* -> *Run all* (Jalankan semua sel):
    - Proses pelatihan 4 skenario bertingkat akan berjalan langsung di GPU Colab.
