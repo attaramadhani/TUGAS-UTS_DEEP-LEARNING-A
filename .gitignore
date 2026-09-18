@@ -6,8 +6,10 @@ data/lung_cancer/
 *.keras
 *.h5
 
-# Hasil eksperimen dan output visualisasi (hanya disimpan secara lokal & Google Drive)
+# Hasil eksperimen, output visualisasi, dan laporan Word (hanya disimpan secara lokal & Google Drive)
 outputs/
+*.docx
+Laporan_Lengkap_UTS_DeepLearning_CNN.docx
 
 # Python cache & Jupyter checkpoints
 __pycache__/

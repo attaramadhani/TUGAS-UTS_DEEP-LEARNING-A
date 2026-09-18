@@ -101,22 +101,15 @@ Model yang digunakan adalah arsitektur *Deep Convolutional Neural Network* modul
 ```text
 TUGAS-UTS_DEEP-LEARNING-A/
 │
-├── .gitignore                                  # Mengabaikan dataset lokal besar, model biner, & cache
+├── .gitignore                                  # Mengabaikan dataset lokal, cache, model, & file laporan
 ├── README.md                                   # Dokumentasi lengkap & ringkasan hasil
-│
-├── main.py                                     # PROGRAM UTAMA TERPADU: Download, Preprocess,
-│                                               # Arsitektur CNN, 4 Skenario Bertingkat,
-│                                               # Evaluasi Grafik 300 DPI, & Generator Laporan Word
-│
-├── Tugas_UTS_CNN_IQOTHNCCD.ipynb               # Jupyter Notebook siap uji coba di Google Colab
-│                                               # Dilengkapi fitur auto-save ke Google Drive
-├── Laporan_Lengkap_UTS_DeepLearning_CNN.docx   # Dokumen laporan resmi UTS berformat Microsoft Word
-│
-└── outputs/                                    # Artefak visualisasi, catatan log, & model terbaik
-    ├── figures/                                # Grafik kurva loss/akurasi, confusion matrix, & progresi
-    ├── logs/                                   # Rekapitulasi riwayat pelatihan CSV & JSON
-    └── models/                                 # Final Champion Model (.keras) berakurasi 98.18%
+├── main.py                                     # Program Utama Eksekusi Lokal (Pipeline Terpadu 4 Skenario)
+└── Tugas_UTS_CNN_IQOTHNCCD.ipynb               # Jupyter Notebook Siap Eksekusi di Google Colab
 ```
+
+> **📌 Catatan Berkas Tambahan:**  
+> Berkas dokumen resmi Microsoft Word (`Laporan_Lengkap_UTS_DeepLearning_CNN.docx`), bobot model biner (`outputs/models/`), grafik resolusi tinggi (`outputs/figures/`), dan log CSV (`outputs/logs/`) disimpan secara lokal dan dapat diakses publik melalui:  
+> 🔗 **[Folder Google Drive Hasil Eksperimen & Dokumen Laporan UTS](https://drive.google.com/drive/folders/1suEYnYWUooZMnR6i1GrlLWoH9XsE3PEd?usp=sharing)**
 
 ---
 
