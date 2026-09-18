@@ -94,38 +94,39 @@ Model yang digunakan adalah arsitektur *Deep Convolutional Neural Network* modul
 ```text
 TUGAS-UTS_DEEP-LEARNING-A/
 │
-├── .gitignore                                  # Mengabaikan dataset lokal besar & model biner keras
+├── .gitignore                                  # Mengabaikan dataset lokal besar, model biner, & cache
 ├── README.md                                   # Dokumentasi lengkap & ringkasan hasil
 │
 ├── main.py                                     # PROGRAM UTAMA TERPADU: Download, Preprocess,
 │                                               # Arsitektur CNN, 4 Skenario Bertingkat,
 │                                               # Evaluasi Grafik 300 DPI, & Generator Laporan Word
 │
-├── cache.pkl                                   # SMART CACHE MEMORY: Menyimpan hasil eksperimen lengkap
-│                                               # agar dapat dimuat instan di Google Colab / lokal
-├── Tugas_UTS_CNN_IQOTHNCCD.ipynb               # Jupyter Notebook siap eksekusi di Google Colab
-│                                               # Dilengkapi fitur auto-backup ke Google Drive & Smart Cache
+├── Tugas_UTS_CNN_IQOTHNCCD.ipynb               # Jupyter Notebook siap uji coba di Google Colab
+│                                               # Dilengkapi fitur auto-save ke Google Drive
 ├── Laporan_Lengkap_UTS_DeepLearning_CNN.docx   # Dokumen laporan resmi UTS berformat Microsoft Word
 │
 └── outputs/                                    # Artefak visualisasi & catatan log
     ├── figures/                                # Grafik kurva loss/akurasi, confusion matrix, & progresi
-    ├── logs/                                   # Rekapitulasi riwayat pelatihan CSV & JSON
-    └── cache.pkl                               # Cadangan memori cache hasil eksperimen
+    └── logs/                                   # Rekapitulasi riwayat pelatihan CSV & JSON
 ```
 
 ---
 
 ## 🚀 Panduan Menjalankan Kode Program
 
-### A. Menjalankan di Google Colab (Paling Praktis)
+### A. Menjalankan di Google Colab (Uji Coba Langsung)
 1. Klik tombol badge berikut untuk membuka notebook langsung di Google Colab:
    [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/attaramadhani/TUGAS-UTS_DEEP-LEARNING-A/blob/main/Tugas_UTS_CNN_IQOTHNCCD.ipynb)
 2. Pastikan Runtime menggunakan GPU (Menu: *Runtime* -> *Change runtime type* -> *T4 GPU*).
-3. Jalankan sel berurutan atau klik *Runtime* -> *Run all*.
-4. Pada **Langkah 1**, Colab akan meminta izin menghubungkan **Google Drive**. Setujui izin tersebut agar seluruh grafik visualisasi, file `cache.pkl`, dan laporan Word otomatis tersimpan ke Google Drive Anda.
-5. **Fitur Smart Cache (`cache.pkl`)**: 
-   - Karena file `cache.pkl` telah tersedia di repositori, notebook akan otomatis memuat hasil eksperimen secara instan tanpa perlu menunggu waktu training berulang-ulang.
-   - Jika ingin melatih model dari awal secara manual, cukup ubah `FORCE_RETRAIN = True` di Langkah 1.
+3. Di **Langkah 1**:
+   - Jika Anda memiliki folder tujuan khusus di Google Drive (misalnya nama folder dari link sharing Drive Anda), Anda dapat mengisi variabel `TARGET_FOLDER_NAME = "NAMA_FOLDER_ANDA"`. Secara default folder akan bernama `TUGAS_UTS_DEEP_LEARNING_A`.
+   - Setujui *prompt* otorisasi akun saat Google Drive di-mount.
+4. Klik *Runtime* -> *Run all* (Jalankan semua sel):
+   - Proses pelatihan 4 skenario bertingkat akan berjalan langsung di GPU Colab.
+   - Setiap kali grafik visualisasi digambar, file gambar langsung diekspor real-time ke folder Google Drive Anda.
+   - Pada **Langkah 17**, file `cache.pkl` otomatis dikompilasi dari hasil pelatihan aktual dan disimpan ke Google Drive.
+   - Pada **Langkah 18**, laporan lengkap `Laporan_Lengkap_UTS_DeepLearning_CNN.docx` otomatis dibuat dan disimpan ke Google Drive.
+   - Pada **Langkah 19**, sistem akan memverifikasi dan menampilkan seluruh daftar berkas yang telah tersimpan rapi di Google Drive.
 
 ### B. Menjalankan Secara Lokal via Terminal (`main.py`)
 ```bash
