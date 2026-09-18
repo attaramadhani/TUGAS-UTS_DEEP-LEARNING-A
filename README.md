@@ -105,9 +105,10 @@ TUGAS-UTS_DEEP-LEARNING-A/
 │                                               # Dilengkapi fitur auto-save ke Google Drive
 ├── Laporan_Lengkap_UTS_DeepLearning_CNN.docx   # Dokumen laporan resmi UTS berformat Microsoft Word
 │
-└── outputs/                                    # Artefak visualisasi & catatan log
+└── outputs/                                    # Artefak visualisasi, catatan log, & model terbaik
     ├── figures/                                # Grafik kurva loss/akurasi, confusion matrix, & progresi
-    └── logs/                                   # Rekapitulasi riwayat pelatihan CSV & JSON
+    ├── logs/                                   # Rekapitulasi riwayat pelatihan CSV & JSON
+    └── models/                                 # Final Champion Model (.keras) berakurasi 98.18%
 ```
 
 ---

@@ -555,6 +555,13 @@ def run_progressive_pipeline():
     with open(os.path.join(LOGS_DIR, 'progressive_pipeline_results.json'), 'w') as f:
         json.dump(serializable_dict, f, indent=2)
 
+    # Simpan Final Champion Model (.keras) ke outputs/models/
+    champion_model_path = os.path.join(MODELS_DIR, 'final_champion_model.keras')
+    if 'model' in champion_model_res and champion_model_res['model'] is not None:
+        champion_model_res['model'].save(champion_model_path)
+        fsize_mb = os.path.getsize(champion_model_path) / (1024 * 1024)
+        print(f"[MODEL] Final Champion Model (.keras) disimpan di: {champion_model_path} ({fsize_mb:.2f} MB)")
+
     # Simpan Smart Cache (cache.pkl) untuk Google Colab
     import pickle
     cache_data = {
@@ -567,8 +574,6 @@ def run_progressive_pipeline():
         'final_benchmark_df': df_prog
     }
     with open(os.path.join(BASE_DIR, 'cache.pkl'), 'wb') as f:
-        pickle.dump(cache_data, f, protocol=pickle.HIGHEST_PROTOCOL)
-    with open(os.path.join(OUTPUTS_DIR, 'cache.pkl'), 'wb') as f:
         pickle.dump(cache_data, f, protocol=pickle.HIGHEST_PROTOCOL)
     print(f"[CACHE] Smart cache memory disimpan di: {os.path.join(BASE_DIR, 'cache.pkl')}")
 
