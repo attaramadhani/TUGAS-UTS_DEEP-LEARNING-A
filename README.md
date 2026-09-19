@@ -59,6 +59,12 @@ Model yang digunakan adalah arsitektur *Deep Convolutional Neural Network* modul
 - **Blok Konvolusi 4:** `Conv2D(128, kernel 3x3, padding='same', activation='relu')` $\rightarrow$ `MaxPooling2D(2x2)` $\rightarrow$ Output `(8, 8, 128)` [147.584 param]
 - **Dense Classifier:** `Flatten()` $\rightarrow$ `Dense(128, activation='relu')` $\rightarrow$ `Dropout(rate=p)` $\rightarrow$ `Dense(3, activation='softmax')` [1.049.091 param]
 
+<p align="center">
+  <img src="outputs/figures/cnn_architecture.png" alt="Diagram Alur Arsitektur CNN" width="100%"/>
+  <br/>
+  <em><b>Gambar:</b> Diagram Alur Arsitektur Kustom Deep CNN 4-Blok Hierarkis (Input Citra CT-Scan 128×128×3 hingga Output Softmax 3-Kelas, Total 1.289.923 Parameter)</em>
+</p>
+
 ---
 
 ## 🔬 Metodologi & Hasil Eksperimen 4 Skenario Bertingkat
@@ -104,7 +110,8 @@ TUGAS-UTS_DEEP-LEARNING-A/
 ├── .gitignore                                  # Mengabaikan dataset lokal, cache, model, & file laporan
 ├── README.md                                   # Dokumentasi lengkap & ringkasan hasil
 ├── main.py                                     # Program Utama Eksekusi Lokal (Pipeline Terpadu 4 Skenario)
-└── Tugas_UTS_CNN_IQOTHNCCD.ipynb               # Jupyter Notebook Siap Eksekusi di Google Colab
+├── Tugas_UTS_CNN_IQOTHNCCD.ipynb               # Jupyter Notebook Siap Eksekusi di Google Colab
+└── outputs/figures/cnn_architecture.png        # Diagram visual arsitektur CNN resolusi tinggi 300 DPI
 ```
 
 > **📌 Catatan Berkas Tambahan:**  

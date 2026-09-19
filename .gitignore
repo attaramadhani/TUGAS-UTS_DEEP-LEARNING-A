@@ -7,7 +7,10 @@ data/lung_cancer/
 *.h5
 
 # Hasil eksperimen, output visualisasi, dan laporan Word (hanya disimpan secara lokal & Google Drive)
-outputs/
+outputs/*
+!outputs/figures/
+outputs/figures/*
+!outputs/figures/cnn_architecture.png
 *.docx
 Laporan_Lengkap_UTS_DeepLearning_CNN.docx
 
