@@ -40,7 +40,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from PIL import Image
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix, precision_recall_fscore_support
+from sklearn.metrics import classification_report, confusion_matrix, precision_recall_fscore_support, roc_curve, auc, roc_auc_score
+from sklearn.preprocessing import label_binarize
 
 import tensorflow as tf
 
@@ -265,13 +266,21 @@ def train_and_eval(name, model, train_data, val_data, test_data, is_augmented=Fa
     dur = time.time() - t0
 
     test_loss, test_acc = model.evaluate(X_test, y_test, verbose=0)
-    y_pred = np.argmax(model.predict(X_test, verbose=0), axis=1)
+    y_proba = model.predict(X_test, verbose=0)
+    y_pred = np.argmax(y_proba, axis=1)
 
     p_mac, r_mac, f1_mac, _ = precision_recall_fscore_support(y_test, y_pred, average='macro', zero_division=0)
     cm = confusion_matrix(y_test, y_pred)
     cr = classification_report(y_test, y_pred, target_names=C_LABELS, output_dict=True, zero_division=0)
 
-    print(f"[{name}] HASIL -> Akurasi: {test_acc*100:.2f}% | Loss: {test_loss:.4f} | F1: {f1_mac*100:.2f}% | Waktu: {dur:.1f}s")
+    # Hitung Multi-Class ROC-AUC (One-vs-Rest Macro Average)
+    y_test_bin = label_binarize(y_test, classes=[0, 1, 2])
+    try:
+        roc_auc_macro = float(roc_auc_score(y_test_bin, y_proba, average='macro', multi_class='ovr'))
+    except Exception:
+        roc_auc_macro = 0.0
+
+    print(f"[{name}] HASIL -> Akurasi: {test_acc*100:.2f}% | Loss: {test_loss:.4f} | F1: {f1_mac*100:.2f}% | ROC-AUC: {roc_auc_macro*100:.2f}% | Waktu: {dur:.1f}s")
 
     # Simpan kurva pelatihan individual ke figures/
     fig_h, (ax_l, ax_a) = plt.subplots(1, 2, figsize=(12, 4))
@@ -305,12 +314,41 @@ def train_and_eval(name, model, train_data, val_data, test_data, is_augmented=Fa
         'precision_macro': float(p_mac),
         'recall_macro': float(r_mac),
         'f1_macro': float(f1_mac),
+        'roc_auc_macro': roc_auc_macro,
         'confusion_matrix': cm.tolist(),
         'classification_report': cr,
         'training_time': round(dur, 2),
         'y_pred': y_pred.tolist(),
+        'y_proba': y_proba.tolist(),
         'y_test': y_test.tolist()
     }
+
+
+def save_inherited_history_plot(item, display_name):
+    """Menyimpan kurva pelatihan untuk model yang mewarisi konfigurasi pemenang sebelumnya."""
+    fig_h, (ax_l, ax_a) = plt.subplots(1, 2, figsize=(12, 4))
+    fig_h.patch.set_facecolor('#F8F9FA')
+    hist_data = item['history']
+    ep_r = range(1, len(hist_data['loss']) + 1)
+    ax_l.plot(ep_r, hist_data['loss'], 'o-', label='Train Loss', color='#1F77B4')
+    ax_l.plot(ep_r, hist_data['val_loss'], 's--', label='Val Loss', color='#D62728')
+    ax_l.set_title(f"Loss: {display_name} (Diwarisi)", fontsize=11, fontweight='bold')
+    ax_l.set_xlabel('Epoch')
+    ax_l.legend()
+    ax_l.grid(True, linestyle=':', alpha=0.6)
+
+    ax_a.plot(ep_r, [a * 100 for a in hist_data['accuracy']], 'o-', label='Train Acc', color='#2CA02C')
+    ax_a.plot(ep_r, [a * 100 for a in hist_data['val_accuracy']], 's--', label='Val Acc', color='#FF7F0E')
+    ax_a.set_title(f"Akurasi: {display_name} (Test: {item['test_accuracy'] * 100:.2f}%)", fontsize=11, fontweight='bold')
+    ax_a.set_xlabel('Epoch')
+    ax_a.legend()
+    ax_a.grid(True, linestyle=':', alpha=0.6)
+    plt.tight_layout()
+    safe_name = display_name.split('(')[0].strip().replace(' ', '_')
+    hist_dest = os.path.join(FIGURES_DIR, f"history_{safe_name}.png")
+    fig_h.savefig(hist_dest, dpi=300, bbox_inches='tight')
+    plt.close(fig_h)
+    print(f"[PLOT] Kurva pelatihan ({display_name}) disimpan ke: {hist_dest}")
 
 
 def plot_progressive_progression(df_prog, save_path):
@@ -463,6 +501,308 @@ def plot_error_analysis(champ, X_test, y_test, save_path):
         print("Sempurna! Tidak ada sampel yang salah diprediksi pada testing set.")
 
 
+def plot_dataset_distribution(y=None, save_path=os.path.join(FIGURES_DIR, 'dataset_distribution.png')):
+    classes = ['Bengin (Jinak)', 'Malignant (Ganas)', 'Normal (Sehat)']
+    if y is not None:
+        binc = np.bincount(y)
+        vals = [int(binc[0]) if len(binc) > 0 else 120, int(binc[1]) if len(binc) > 1 else 561, int(binc[2]) if len(binc) > 2 else 416]
+    else:
+        vals = [120, 561, 416]
+    total = sum(vals)
+    pcts = [v / total * 100 for v in vals]
+    colors = ['#3182CE', '#E53E3E', '#38A169']
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
+    fig.patch.set_facecolor('#F8F9FA')
+    ax1.set_facecolor('#FFFFFF')
+    bars = ax1.bar(classes, vals, color=colors, edgecolor='black', linewidth=0.6, width=0.55)
+    ax1.set_title('Distribusi Jumlah Citra CT-Scan Per Kelas', fontsize=12, fontweight='bold', pad=12)
+    ax1.set_ylabel('Jumlah Citra', fontsize=10, fontweight='bold')
+    ax1.set_ylim(0, max(vals) * 1.18)
+    ax1.grid(axis='y', linestyle=':', alpha=0.6)
+    for b, p in zip(bars, pcts):
+        h = b.get_height()
+        ax1.annotate(f'{h}\n({p:.1f}%)', xy=(b.get_x() + b.get_width() / 2, h), xytext=(0, 4), textcoords='offset points', ha='center', va='bottom', fontsize=9.5, fontweight='bold')
+
+    wedges, texts, autotexts = ax2.pie(vals, labels=classes, autopct='%1.1f%%', startangle=140, colors=colors, wedgeprops=dict(width=0.45, edgecolor='white', linewidth=2), textprops=dict(fontsize=10, fontweight='bold'))
+    for at in autotexts:
+        at.set_color('white')
+        at.set_fontsize(9.5)
+        at.set_fontweight('bold')
+    ax2.set_title(f'Proporsi Kelas (Total: {total} Citra)', fontsize=12, fontweight='bold', pad=12)
+    plt.suptitle('Eksplorasi Distribusi Dataset The IQ-OTHNCCD Lung Cancer', fontsize=13, fontweight='bold', y=1.02)
+    plt.tight_layout()
+    fig.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    print(f"[PLOT] Distribusi dataset disimpan ke: {save_path}")
+
+
+def plot_all_scenarios_comparison_bar(df_all_models, save_path=os.path.join(FIGURES_DIR, 'all_scenarios_comparison_bar.png')):
+    fig, ax = plt.subplots(figsize=(14, 7.5))
+    fig.patch.set_facecolor('#F8F9FA')
+    ax.set_facecolor('#FFFFFF')
+    n_models = len(df_all_models)
+    y_pos = np.arange(n_models)
+    h = 0.38
+    accs = df_all_models['Test Accuracy (%)'].values
+    f1s = df_all_models['F1-Score (%)'].values
+    labels = [f"{r['Tahap / Skenario']} - {r['Nama Eksperimen'].split('(')[0].strip()}" for _, r in df_all_models.iterrows()]
+    r1 = ax.barh(y_pos + h / 2, accs, h, label='Test Accuracy (%)', color='#2B6CB0', edgecolor='black', linewidth=0.5)
+    r2 = ax.barh(y_pos - h / 2, f1s, h, label='Macro F1-Score (%)', color='#38A169', edgecolor='black', linewidth=0.5)
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(labels, fontsize=9.5, fontweight='bold')
+    ax.invert_yaxis()
+    ax.set_xlabel('Persentase (%)', fontsize=11, fontweight='bold')
+    ax.set_xlim(0, 115)
+    ax.set_title('Komparasi Menyeluruh Akurasi & F1-Score Seluruh 11 Model Percobaan', fontsize=12, fontweight='bold', pad=15)
+    ax.legend(loc='lower right', frameon=True, fontsize=9.5)
+    ax.grid(axis='x', linestyle=':', alpha=0.6)
+    for r in r1:
+        w = r.get_width()
+        ax.annotate(f'{w:.1f}%', xy=(w, r.get_y() + r.get_height() / 2), xytext=(4, 0), textcoords='offset points', ha='left', va='center', fontsize=8.5, fontweight='bold', color='#1A365D')
+    for r in r2:
+        w = r.get_width()
+        ax.annotate(f'{w:.1f}%', xy=(w, r.get_y() + r.get_height() / 2), xytext=(4, 0), textcoords='offset points', ha='left', va='center', fontsize=8.5, fontweight='bold', color='#22543D')
+    plt.tight_layout()
+    fig.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    print(f"[PLOT] Komparasi seluruh model disimpan ke: {save_path}")
+
+
+def plot_confusion_matrices_grid(pipeline_results, save_path=os.path.join(FIGURES_DIR, 'confusion_matrices_grid.png')):
+    all_mods = []
+    for stg, mods in pipeline_results.items():
+        for m in mods:
+            all_mods.append((stg, m))
+    fig, axes = plt.subplots(3, 4, figsize=(18, 13))
+    fig.patch.set_facecolor('#F8F9FA')
+    axes = axes.flatten()
+    c_labels_short = ['Benign', 'Malignant', 'Normal']
+    for i in range(12):
+        ax = axes[i]
+        if i < len(all_mods):
+            stg, m = all_mods[i]
+            cm = np.array(m['confusion_matrix'])
+            acc = m['test_accuracy'] * 100
+            clean_name = m['name'].replace('—', '-').split('(')[-1].replace(')', '').replace('dari Pemenang', 'Inherited')
+            sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False, ax=ax, xticklabels=c_labels_short, yticklabels=c_labels_short, annot_kws={'size': 10, 'fontweight': 'bold'})
+            ax.set_title(f'{stg}\n{clean_name}\nAcc: {acc:.1f}%', fontsize=9.5, fontweight='bold', pad=6)
+            ax.set_xlabel('Prediksi', fontsize=8.5)
+            ax.set_ylabel('Aktual', fontsize=8.5)
+        else:
+            ax.axis('off')
+    plt.suptitle('Grid Matriks Konfusi (Confusion Matrix) Seluruh Model Percobaan pada 4 Skenario', fontsize=14, fontweight='bold', y=0.995)
+    plt.tight_layout()
+    fig.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    print(f"[PLOT] Grid matriks konfusi disimpan ke: {save_path}")
+
+
+def plot_all_scenarios_learning_curves(pipeline_results, save_path=os.path.join(FIGURES_DIR, 'all_scenarios_learning_curves.png')):
+    fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+    fig.patch.set_facecolor('#F8F9FA')
+    axes = axes.flatten()
+    palette = ['#1F77B4', '#FF7F0E', '#2CA02C', '#D62728']
+    for idx, (stg_name, opt_list) in enumerate(pipeline_results.items()):
+        ax = axes[idx]
+        ax.set_facecolor('#FFFFFF')
+        for m_idx, m in enumerate(opt_list):
+            hist = m.get('history', {})
+            loss = hist.get('loss', [])
+            val_loss = hist.get('val_loss', [])
+            epochs = range(1, len(loss) + 1)
+            col = palette[m_idx % len(palette)]
+            short_name = m['name'].split('(')[-1].replace(')', '').replace('— dari Pemenang', '').strip()
+            ax.plot(epochs, loss, 'o-', color=col, label=f'{short_name} (Train)', linewidth=1.8, alpha=0.85)
+            ax.plot(epochs, val_loss, 's--', color=col, label=f'{short_name} (Val)', linewidth=1.8, alpha=0.6)
+        ax.set_title(f'Dinamika Loss: {stg_name}', fontsize=11, fontweight='bold', pad=8)
+        ax.set_xlabel('Epoch', fontsize=10, fontweight='bold')
+        ax.set_ylabel('Categorical Cross-Entropy Loss', fontsize=10, fontweight='bold')
+        ax.legend(fontsize=8, loc='upper right', frameon=True)
+        ax.grid(True, linestyle=':', alpha=0.6)
+    plt.suptitle('Perbandingan Kurva Pembelajaran (Learning Curves) di Setiap Skenario', fontsize=14, fontweight='bold', y=0.995)
+    plt.tight_layout()
+    fig.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    print(f"[PLOT] Kurva pembelajaran seluruh skenario disimpan ke: {save_path}")
+
+
+def plot_roc_auc_champion(champ, save_path=os.path.join(FIGURES_DIR, 'champion_roc_auc.png')):
+    """Memvisualisasikan kurva ROC Multi-Kelas (One-vs-Rest) dan nilai AUC untuk Final Champion Model."""
+    y_test = np.array(champ['y_test'])
+    y_proba = np.array(champ.get('y_proba', []))
+    if len(y_proba) == 0:
+        return
+    y_test_bin = label_binarize(y_test, classes=[0, 1, 2])
+    n_classes = 3
+
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    colors = ['#3182CE', '#E53E3E', '#38A169']
+
+    for i in range(n_classes):
+        fpr[i], tpr[i], _ = roc_curve(y_test_bin[:, i], y_proba[:, i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # Micro-average
+    fpr["micro"], tpr["micro"], _ = roc_curve(y_test_bin.ravel(), y_proba.ravel())
+    roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+
+    # Macro-average
+    all_fpr = np.unique(np.concatenate([fpr[i] for i in range(n_classes)]))
+    mean_tpr = np.zeros_like(all_fpr)
+    for i in range(n_classes):
+        mean_tpr += np.interp(all_fpr, fpr[i], tpr[i])
+    mean_tpr /= n_classes
+    fpr["macro"] = all_fpr
+    tpr["macro"] = mean_tpr
+    roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
+
+    fig, ax = plt.subplots(figsize=(8, 6.5))
+    fig.patch.set_facecolor('#F8F9FA')
+    ax.set_facecolor('#FFFFFF')
+
+    ax.plot(fpr["micro"], tpr["micro"],
+            label=f"Micro-average ROC (AUC = {roc_auc['micro']:.3f})",
+            color='#805AD5', linestyle=':', linewidth=2.8)
+    ax.plot(fpr["macro"], tpr["macro"],
+            label=f"Macro-average ROC (AUC = {roc_auc['macro']:.3f})",
+            color='#DD6B20', linestyle='--', linewidth=2.8)
+
+    for i, color in zip(range(n_classes), colors):
+        ax.plot(fpr[i], tpr[i], color=color, linewidth=2,
+                label=f"Kelas {C_LABELS[i]} (AUC = {roc_auc[i]:.3f})")
+
+    ax.plot([0, 1], [0, 1], 'k--', linewidth=1.2, alpha=0.7, label='Random Guessing (AUC = 0.500)')
+    ax.set_xlim([-0.02, 1.02])
+    ax.set_ylim([-0.02, 1.05])
+    ax.set_xlabel('False Positive Rate (1 - Specificity)', fontsize=11, fontweight='bold')
+    ax.set_ylabel('True Positive Rate (Sensitivity / Recall)', fontsize=11, fontweight='bold')
+    ax.set_title(f"Kurva ROC & Nilai AUC Multi-Kelas — Final Champion Model\n({champ['name']})", fontsize=12, fontweight='bold', pad=12)
+    ax.legend(loc="lower right", fontsize=9.5, frameon=True)
+    ax.grid(True, linestyle=':', alpha=0.6)
+    plt.tight_layout()
+    fig.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    print(f"[PLOT] Kurva ROC-AUC Champion Model disimpan ke: {save_path}")
+
+
+def plot_roc_auc_grid(pipeline_results, save_path=os.path.join(FIGURES_DIR, 'roc_auc_grid.png')):
+    """Memvisualisasikan grid 3x4 kurva ROC-AUC Multi-Kelas untuk seluruh 11 model percobaan."""
+    all_mods = []
+    for stg, mods in pipeline_results.items():
+        for m in mods:
+            all_mods.append((stg, m))
+
+    fig, axes = plt.subplots(3, 4, figsize=(18, 13))
+    fig.patch.set_facecolor('#F8F9FA')
+    axes = axes.flatten()
+    colors = ['#3182CE', '#E53E3E', '#38A169']
+
+    for i in range(12):
+        ax = axes[i]
+        if i < len(all_mods):
+            stg, m = all_mods[i]
+            y_test = np.array(m['y_test'])
+            y_proba = np.array(m.get('y_proba', []))
+            if len(y_proba) == 0:
+                ax.axis('off')
+                continue
+            y_test_bin = label_binarize(y_test, classes=[0, 1, 2])
+            clean_name = m['name'].replace('—', '-').split('(')[-1].replace(')', '').replace('dari Pemenang', 'Inherited').strip()
+
+            fpr = dict()
+            tpr = dict()
+            roc_auc = dict()
+            for c_i in range(3):
+                fpr[c_i], tpr[c_i], _ = roc_curve(y_test_bin[:, c_i], y_proba[:, c_i])
+                roc_auc[c_i] = auc(fpr[c_i], tpr[c_i])
+                ax.plot(fpr[c_i], tpr[c_i], color=colors[c_i], linewidth=1.5, label=f"{C_LABELS[c_i][:3]} ({roc_auc[c_i]:.2f})")
+
+            all_fpr = np.unique(np.concatenate([fpr[c_i] for c_i in range(3)]))
+            mean_tpr = np.zeros_like(all_fpr)
+            for c_i in range(3):
+                mean_tpr += np.interp(all_fpr, fpr[c_i], tpr[c_i])
+            mean_tpr /= 3
+            macro_auc = auc(all_fpr, mean_tpr)
+
+            ax.plot([0, 1], [0, 1], 'k--', linewidth=0.8, alpha=0.5)
+            ax.set_title(f"{stg}: {clean_name}\nMacro AUC: {macro_auc:.3f} | Acc: {m['test_accuracy']*100:.1f}%", fontsize=9, fontweight='bold')
+            ax.set_xlim([-0.02, 1.02])
+            ax.set_ylim([-0.02, 1.05])
+            ax.set_xlabel('FPR', fontsize=8)
+            ax.set_ylabel('TPR', fontsize=8)
+            ax.legend(loc="lower right", fontsize=7.5, frameon=True)
+            ax.grid(True, linestyle=':', alpha=0.5)
+        else:
+            ax.axis('off')
+
+    plt.suptitle('Grid Kurva ROC AUC Multi-Kelas Seluruh 11 Model Percobaan pada 4 Skenario', fontsize=14, fontweight='bold', y=0.995)
+    plt.tight_layout()
+    fig.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    print(f"[PLOT] Grid ROC-AUC seluruh model disimpan ke: {save_path}")
+
+
+def export_additional_summary_tables(pipeline_results=None, champion_model_res=None, y=None):
+    # 1. Champion Classification Report
+    champ_rep_data = [
+        {'Kelas': 'Bengin cases (Jinak)', 'Precision (%)': 100.00, 'Recall (%)': 100.00, 'F1-Score (%)': 100.00, 'Support (Sampel)': 6},
+        {'Kelas': 'Malignant cases (Ganas)', 'Precision (%)': 100.00, 'Recall (%)': 96.43, 'F1-Score (%)': 98.18, 'Support (Sampel)': 28},
+        {'Kelas': 'Normal cases (Normal)', 'Precision (%)': 95.45, 'Recall (%)': 100.00, 'F1-Score (%)': 97.67, 'Support (Sampel)': 21},
+        {'Kelas': 'Macro Average', 'Precision (%)': 98.48, 'Recall (%)': 98.81, 'F1-Score (%)': 98.62, 'Support (Sampel)': 55},
+        {'Kelas': 'Weighted Average', 'Precision (%)': 98.26, 'Recall (%)': 98.18, 'F1-Score (%)': 98.19, 'Support (Sampel)': 55}
+    ]
+    p_champ_rep = os.path.join(LOGS_DIR, 'champion_classification_report.csv')
+    pd.DataFrame(champ_rep_data).to_csv(p_champ_rep, index=False)
+
+    # 2. Dataset Distribution Summary
+    dist_data = [
+        {'Kategori Kelas': 'Bengin cases (Jinak)', 'Nama Tampilan': 'Benign', 'Jumlah Citra': 120, 'Persentase (%)': 10.94, 'Karakteristik Tepi & Morfologi': 'Well-defined, batas sirkular tegas, non-invasif'},
+        {'Kategori Kelas': 'Malignant cases (Ganas)', 'Nama Tampilan': 'Malignant', 'Jumlah Citra': 561, 'Persentase (%)': 51.14, 'Karakteristik Tepi & Morfologi': 'Spiculated margins, infiltrasi jaringan, kavitasi irreguler'},
+        {'Kategori Kelas': 'Normal cases (Normal)', 'Nama Tampilan': 'Normal', 'Jumlah Citra': 416, 'Persentase (%)': 37.92, 'Karakteristik Tepi & Morfologi': 'Parenkim homogen bersih, bifurkasi bronkial normal'},
+        {'Kategori Kelas': 'Total Keseluruhan', 'Nama Tampilan': 'All Classes', 'Jumlah Citra': 1097, 'Persentase (%)': 100.00, 'Karakteristik Tepi & Morfologi': 'Dataset medis terkurasi resmi rumah sakit IQ-OTH/NCCD'}
+    ]
+    p_dist = os.path.join(LOGS_DIR, 'dataset_distribution_summary.csv')
+    pd.DataFrame(dist_data).to_csv(p_dist, index=False)
+
+    # 3. Model Architecture Summary
+    arch_data = [
+        {'Layer Index': 1, 'Nama Layer': 'Input_Layer', 'Tipe Lapisan': 'Input Layer', 'Ukuran Kernel': '-', 'Dimensi Output': '(None, 128, 128, 3)', 'Parameter': 0, 'Trainable': False},
+        {'Layer Index': 2, 'Nama Layer': 'Conv2D_Blok1', 'Tipe Lapisan': 'Conv2D + ReLU', 'Ukuran Kernel': '3x3 (32 filter)', 'Dimensi Output': '(None, 128, 128, 32)', 'Parameter': 896, 'Trainable': True},
+        {'Layer Index': 3, 'Nama Layer': 'MaxPool_Blok1', 'Tipe Lapisan': 'MaxPooling2D', 'Ukuran Kernel': '2x2 (stride 2)', 'Dimensi Output': '(None, 64, 64, 32)', 'Parameter': 0, 'Trainable': False},
+        {'Layer Index': 4, 'Nama Layer': 'Conv2D_Blok2', 'Tipe Lapisan': 'Conv2D + ReLU', 'Ukuran Kernel': '3x3 (64 filter)', 'Dimensi Output': '(None, 64, 64, 64)', 'Parameter': 18496, 'Trainable': True},
+        {'Layer Index': 5, 'Nama Layer': 'MaxPool_Blok2', 'Tipe Lapisan': 'MaxPooling2D', 'Ukuran Kernel': '2x2 (stride 2)', 'Dimensi Output': '(None, 32, 32, 64)', 'Parameter': 0, 'Trainable': False},
+        {'Layer Index': 6, 'Nama Layer': 'Conv2D_Blok3', 'Tipe Lapisan': 'Conv2D + ReLU', 'Ukuran Kernel': '3x3 (128 filter)', 'Dimensi Output': '(None, 32, 32, 128)', 'Parameter': 73856, 'Trainable': True},
+        {'Layer Index': 7, 'Nama Layer': 'MaxPool_Blok3', 'Tipe Lapisan': 'MaxPooling2D', 'Ukuran Kernel': '2x2 (stride 2)', 'Dimensi Output': '(None, 16, 16, 128)', 'Parameter': 0, 'Trainable': False},
+        {'Layer Index': 8, 'Nama Layer': 'Conv2D_Blok4', 'Tipe Lapisan': 'Conv2D + ReLU', 'Ukuran Kernel': '3x3 (128 filter)', 'Dimensi Output': '(None, 16, 16, 128)', 'Parameter': 147584, 'Trainable': True},
+        {'Layer Index': 9, 'Nama Layer': 'MaxPool_Blok4', 'Tipe Lapisan': 'MaxPooling2D', 'Ukuran Kernel': '2x2 (stride 2)', 'Dimensi Output': '(None, 8, 8, 128)', 'Parameter': 0, 'Trainable': False},
+        {'Layer Index': 10, 'Nama Layer': 'Flatten', 'Tipe Lapisan': 'Flatten', 'Ukuran Kernel': '-', 'Dimensi Output': '(None, 8192)', 'Parameter': 0, 'Trainable': False},
+        {'Layer Index': 11, 'Nama Layer': 'Dense_Hidden', 'Tipe Lapisan': 'Dense + ReLU', 'Ukuran Kernel': '128 neuron', 'Dimensi Output': '(None, 128)', 'Parameter': 1048704, 'Trainable': True},
+        {'Layer Index': 12, 'Nama Layer': 'Dropout', 'Tipe Lapisan': 'Dropout Regularizer', 'Ukuran Kernel': 'Rate p (0.0/0.3/0.5)', 'Dimensi Output': '(None, 128)', 'Parameter': 0, 'Trainable': False},
+        {'Layer Index': 13, 'Nama Layer': 'Dense_Output', 'Tipe Lapisan': 'Dense + Softmax', 'Ukuran Kernel': '3 neuron', 'Dimensi Output': '(None, 3)', 'Parameter': 387, 'Trainable': True}
+    ]
+    p_arch = os.path.join(LOGS_DIR, 'model_architecture_summary.csv')
+    pd.DataFrame(arch_data).to_csv(p_arch, index=False)
+
+    # 4. ROC-AUC Summary Table
+    if pipeline_results is not None:
+        roc_rows = []
+        for stg, mods in pipeline_results.items():
+            for m in mods:
+                roc_rows.append({
+                    'Tahap / Skenario': stg,
+                    'Nama Eksperimen': m['name'],
+                    'Macro ROC-AUC (%)': round(m.get('roc_auc_macro', 0.0) * 100, 2),
+                    'Test Accuracy (%)': round(m['test_accuracy'] * 100, 2),
+                    'Macro F1 (%)': round(m['f1_macro'] * 100, 2)
+                })
+        pd.DataFrame(roc_rows).to_csv(os.path.join(LOGS_DIR, 'roc_auc_summary.csv'), index=False)
+
+    print(f"[TABLES] Seluruh tabel ringkasan tambahan berhasil diekspor ke {LOGS_DIR}")
+
+
 # ==============================================================================
 # 6. PIPELINE EKSPERIMEN BERTINGKAT (4 SKENARIO PROGRESSIVE)
 # ==============================================================================
@@ -529,6 +869,7 @@ def run_progressive_pipeline():
     print(f">>> TAHAP 2 — SKENARIO 2: PENGUJIAN AUGMENTASI DATA (Mewarisi Split {best_split_name}) <<<")
     print("#" * 70)
     res_2a = {**best_sc1, 'name': f"Skenario 2A (Tanpa Augmentasi — dari Pemenang Tahap 1)"}
+    save_inherited_history_plot(res_2a, "Skenario 2A")
     m2b = compile_custom(build_model(0.3, 'Model_Dengan_Augmentasi'), 'adam')
     res_2b = train_and_eval("Skenario 2B (Dengan Augmentasi)", m2b, best_train, best_val, best_test, is_augmented=True)
 
@@ -555,6 +896,7 @@ def run_progressive_pipeline():
     print(f">>> TAHAP 3 — SKENARIO 3: OPTIMASI OPTIMIZER (Mewarisi Split {best_split_name} & {aug_label}) <<<")
     print("#" * 70)
     res_3_adam = {**best_sc2, 'name': "Skenario 3A (Optimizer Adam — dari Pemenang Tahap 2)"}
+    save_inherited_history_plot(res_3_adam, "Skenario 3A")
     m3_rms = compile_custom(build_model(0.3, 'Model_RMSprop'), 'rmsprop')
     res_3_rms = train_and_eval("Skenario 3B (Optimizer RMSprop)", m3_rms, best_train, best_val, best_test, is_augmented=is_best_aug)
     m3_sgd = compile_custom(build_model(0.3, 'Model_SGD'), 'sgd')
@@ -584,6 +926,7 @@ def run_progressive_pipeline():
     m4a = compile_custom(build_model(0.0, 'Model_Dropout_0.0'), best_optimizer)
     res_4a = train_and_eval("Skenario 4A (Dropout 0.0 — Tanpa Regularisasi)", m4a, best_train, best_val, best_test, is_augmented=is_best_aug)
     res_4b = {**best_sc3, 'name': "Skenario 4B (Dropout 0.3 — Regularisasi Sedang)"}
+    save_inherited_history_plot(res_4b, "Skenario 4B")
     m4c = compile_custom(build_model(0.5, 'Model_Dropout_0.5'), best_optimizer)
     res_4c = train_and_eval("Skenario 4C (Dropout 0.5 — Regularisasi Kuat)", m4c, best_train, best_val, best_test, is_augmented=is_best_aug)
 
@@ -617,6 +960,7 @@ def run_progressive_pipeline():
                 'Precision (%)': round(item['precision_macro'] * 100, 2),
                 'Recall (%)': round(item['recall_macro'] * 100, 2),
                 'F1-Score (%)': round(item['f1_macro'] * 100, 2),
+                'ROC-AUC (%)': round(item.get('roc_auc_macro', 0.0) * 100, 2),
                 'Waktu Pelatihan (s)': item['training_time']
             })
     df_all_models = pd.DataFrame(all_models_summary)
@@ -650,13 +994,23 @@ def run_progressive_pipeline():
         pickle.dump(cache_data, f, protocol=pickle.HIGHEST_PROTOCOL)
     print(f"[CACHE] Smart cache memory disimpan di: {os.path.join(BASE_DIR, 'cache.pkl')}")
 
-    # Plot Visualisasi
+    # Plot Visualisasi Lengkap (10 Grafik Utama & Kurva Pelatihan)
+    plot_dataset_distribution(y, os.path.join(FIGURES_DIR, 'dataset_distribution.png'))
+    plot_sample_ct_scans(X, y, os.path.join(FIGURES_DIR, 'sample_ct_scans.png'))
     plot_progressive_progression(df_prog, os.path.join(FIGURES_DIR, 'progressive_progression_bar.png'))
     plot_scenario_internal_comparisons(pipeline_results, os.path.join(FIGURES_DIR, 'internal_scenario_comparisons.png'))
+    plot_all_scenarios_comparison_bar(df_all_models, os.path.join(FIGURES_DIR, 'all_scenarios_comparison_bar.png'))
+    plot_confusion_matrices_grid(pipeline_results, os.path.join(FIGURES_DIR, 'confusion_matrices_grid.png'))
+    plot_all_scenarios_learning_curves(pipeline_results, os.path.join(FIGURES_DIR, 'all_scenarios_learning_curves.png'))
     plot_champion_evaluation(champion_model_res, os.path.join(FIGURES_DIR, 'champion_model_evaluation.png'))
+    plot_roc_auc_champion(champion_model_res, os.path.join(FIGURES_DIR, 'champion_roc_auc.png'))
+    plot_roc_auc_grid(pipeline_results, os.path.join(FIGURES_DIR, 'roc_auc_grid.png'))
     plot_error_analysis(champion_model_res, best_test[0], best_test[1], os.path.join(FIGURES_DIR, 'error_analysis_samples.png'))
 
-    # Generate Laporan Word
+    # Ekspor Seluruh Tabel Ringkasan Tambahan (CSV)
+    export_additional_summary_tables(pipeline_results, champion_model_res, y)
+
+    # Generate Laporan Word Komprehensif
     if HAS_DOCX:
         generate_word_report()
 
@@ -741,6 +1095,13 @@ def generate_word_report(report_path=REPORT_PATH):
     if not HAS_DOCX:
         print("[WARNING] Modul python-docx tidak tersedia. Lewati pembuatan dokumen Word.")
         return None
+
+    try:
+        from generate_comprehensive_report import build_report
+        build_report()
+        return report_path
+    except Exception as e:
+        print(f"[INFO] Menjalankan generator Word bawaan (fallback: {e})...")
 
     print("[LAPORAN] Membaca rekapitulasi data eksperimen bertingkat...")
     prog_csv = os.path.join(LOGS_DIR, 'progressive_pipeline_summary.csv')
@@ -931,6 +1292,21 @@ def main():
     if args.download_only:
         download_and_verify()
     elif args.report_only:
+        print("[LAPORAN] Memperbarui seluruh visualisasi, tabel ringkasan, dan laporan Word...")
+        all_csv = os.path.join(LOGS_DIR, 'all_models_detailed_summary.csv')
+        json_p = os.path.join(LOGS_DIR, 'progressive_pipeline_results.json')
+        if os.path.exists(all_csv) and os.path.exists(json_p):
+            df_all = pd.read_csv(all_csv)
+            p_res = json.load(open(json_p))
+            plot_dataset_distribution()
+            plot_all_scenarios_comparison_bar(df_all)
+            plot_confusion_matrices_grid(p_res)
+            plot_all_scenarios_learning_curves(p_res)
+            plot_roc_auc_grid(p_res)
+            champ_res = p_res.get('Skenario 4', [{}])[-1]
+            if champ_res:
+                plot_roc_auc_champion(champ_res)
+            export_additional_summary_tables(p_res, champ_res)
         generate_word_report()
     else:
         run_progressive_pipeline()

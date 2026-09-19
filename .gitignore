@@ -29,5 +29,5 @@ build_notebook.py
 build_full_uts_notebook.py
 run_experiments.py
 generate_comprehensive_report.py
-generate_roc_auc.py
+generate_missing_artifacts.py
 UTS_Deep_Learning_CNN.ipynb
