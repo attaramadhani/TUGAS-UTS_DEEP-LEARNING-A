@@ -34,3 +34,5 @@ run_experiments.py
 generate_comprehensive_report.py
 generate_missing_artifacts.py
 UTS_Deep_Learning_CNN.ipynb
+scratch/
+
