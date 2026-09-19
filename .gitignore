@@ -28,4 +28,5 @@ venv/
 build_notebook.py
 build_full_uts_notebook.py
 run_experiments.py
+generate_comprehensive_report.py
 UTS_Deep_Learning_CNN.ipynb
