@@ -50,49 +50,49 @@ Eksperimen dirancang dengan paradigma **Optimasi Bertingkat (Progressive Ablatio
 
 ---
 
-## 🧱 Arsitektur Model CNN (Custom 4-Block)
-Model yang digunakan adalah arsitektur *Deep Convolutional Neural Network* modular 4 blok:
+### 🧱 Arsitektur Model CNN (Custom 4-Block)
+Model yang digunakan adalah arsitektur *Deep Convolutional Neural Network* modular 4 blok (Total Parameter: **1.289.923 Parameter Terlatih**, 100% Trainable, ukuran file bobot `final_champion_model.keras` sebesar **~14.81 MB**):
 - **Input Layer:** `(128, 128, 3)` ternormalisasi $[0.0, 1.0]$.
-- **Blok Konvolusi 1:** `Conv2D(32, kernel 3x3, padding='same', activation='relu')` $\rightarrow$ `MaxPooling2D(2x2)`
-- **Blok Konvolusi 2:** `Conv2D(64, kernel 3x3, padding='same', activation='relu')` $\rightarrow$ `MaxPooling2D(2x2)`
-- **Blok Konvolusi 3:** `Conv2D(128, kernel 3x3, padding='same', activation='relu')` $\rightarrow$ `MaxPooling2D(2x2)`
-- **Blok Konvolusi 4:** `Conv2D(128, kernel 3x3, padding='same', activation='relu')` $\rightarrow$ `MaxPooling2D(2x2)`
-- **Dense Classifier:** `Flatten()` $\rightarrow$ `Dense(128, activation='relu')` $\rightarrow$ `Dropout(rate=p)` $\rightarrow$ `Dense(3, activation='softmax')`
+- **Blok Konvolusi 1:** `Conv2D(32, kernel 3x3, padding='same', activation='relu')` $\rightarrow$ `MaxPooling2D(2x2)` $\rightarrow$ Output `(64, 64, 32)` [896 param]
+- **Blok Konvolusi 2:** `Conv2D(64, kernel 3x3, padding='same', activation='relu')` $\rightarrow$ `MaxPooling2D(2x2)` $\rightarrow$ Output `(32, 32, 64)` [18.496 param]
+- **Blok Konvolusi 3:** `Conv2D(128, kernel 3x3, padding='same', activation='relu')` $\rightarrow$ `MaxPooling2D(2x2)` $\rightarrow$ Output `(16, 16, 128)` [73.856 param]
+- **Blok Konvolusi 4:** `Conv2D(128, kernel 3x3, padding='same', activation='relu')` $\rightarrow$ `MaxPooling2D(2x2)` $\rightarrow$ Output `(8, 8, 128)` [147.584 param]
+- **Dense Classifier:** `Flatten()` $\rightarrow$ `Dense(128, activation='relu')` $\rightarrow$ `Dropout(rate=p)` $\rightarrow$ `Dense(3, activation='softmax')` [1.049.091 param]
 
 ---
 
 ## 🔬 Metodologi & Hasil Eksperimen 4 Skenario Bertingkat
 
 ```
-[Skenario 1: Variasi Data Split] ──> Pilih Split 90:05:05 (Akurasi 94.55%)
+[Skenario 1: Variasi Data Split] ──> Pilih Split 90:05:05 (Akurasi 98.18%)
                  │
                  ▼
-[Skenario 2: Uji Augmentasi Data] ──> Pilih Tanpa Augmentasi (Akurasi 94.55%)
+[Skenario 2: Uji Augmentasi Data] ──> Pilih Tanpa Augmentasi (Akurasi 98.18%)
                  │
                  ▼
-[Skenario 3: Komparasi Optimizer] ──> Pilih Adam (Akurasi 94.55%)
+[Skenario 3: Komparasi Optimizer] ──> Pilih Adam (Akurasi 98.18%)
                  │
                  ▼
-[Skenario 4: Studi Dropout]       ──> Pilih Dropout 0.3 (Akurasi 98.18%, F1 96.62%)
+[Skenario 4: Studi Dropout]       ──> Pilih Dropout 0.3 / 0.5 (Akurasi 98.18%, ROC-AUC 99.95%)
                  │
                  ▼
-     [FINAL CHAMPION MODEL]
+      [FINAL CHAMPION MODEL]
 ```
 
 ### Rekapitulasi Metrik Evaluasi:
 | Skenario | Varian yang Diuji | Akurasi Uji | Loss Uji | Macro Precision | Macro Recall | Macro F1-Score | Status |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Skenario 1** | Split 70:15:15 | 93.33% | 0.2038 | 91.56% | 90.96% | 91.24% | - |
-| **Skenario 1** | Split 80:10:10 | 92.73% | 0.2520 | 89.92% | 89.28% | 89.47% | - |
-| **Skenario 1** | **Split 90:05:05** | **94.55%** | **0.1713** | **92.20%** | **91.13%** | **91.56%** | **Juara S1** 🏆 |
-| **Skenario 2** | **Tanpa Augmentasi** | **94.55%** | **0.1713** | **92.20%** | **91.13%** | **91.56%** | **Juara S2** 🏆 |
-| **Skenario 2** | Dengan Augmentasi | 89.09% | 0.2974 | 88.35% | 85.08% | 86.20% | - |
-| **Skenario 3** | **Adam (lr=0.0005)** | **94.55%** | **0.1713** | **92.20%** | **91.13%** | **91.56%** | **Juara S3** 🏆 |
-| **Skenario 3** | RMSprop (lr=0.0005) | 90.91% | 0.3804 | 93.33% | 81.39% | 85.20% | - |
-| **Skenario 3** | SGD Momentum | 83.64% | 0.3951 | 80.82% | 75.28% | 76.87% | - |
-| **Skenario 4** | Dropout 0.0 | 94.55% | 0.2317 | 93.59% | 92.88% | 93.07% | - |
-| **Skenario 4** | **Dropout 0.3** | **98.18%** | **0.1066** | **96.67%** | **96.67%** | **96.62%** | **CHAMPION MODEL** 🌟 |
-| **Skenario 4** | Dropout 0.5 | 96.36% | 0.1723 | 94.87% | 95.83% | 95.28% | - |
+| **Skenario 1** | Split 70:15:15 | 92.73% | 0.1494 | 94.57% | 84.92% | 88.00% | - |
+| **Skenario 1** | Split 80:10:10 | 89.09% | 0.2782 | 92.06% | 79.37% | 82.76% | - |
+| **Skenario 1** | **Split 90:05:05** | **98.18%** | **0.0500** | **95.24%** | **98.41%** | **96.62%** | **Juara S1** 🏆 |
+| **Skenario 2** | **Tanpa Augmentasi** | **98.18%** | **0.0500** | **95.24%** | **98.41%** | **96.62%** | **Juara S2** 🏆 |
+| **Skenario 2** | Dengan Augmentasi | 67.27% | 0.6853 | 45.33% | 51.19% | 47.43% | - |
+| **Skenario 3** | **Adam (lr=0.0005)** | **98.18%** | **0.0500** | **95.24%** | **98.41%** | **96.62%** | **Juara S3** 🏆 |
+| **Skenario 3** | RMSprop (lr=0.0005) | 90.91% | 0.2381 | 93.59% | 89.68% | 90.86% | - |
+| **Skenario 3** | SGD Momentum (lr=0.001)| 65.45% | 0.7920 | 44.95% | 46.83% | 44.17% | - |
+| **Skenario 4** | Dropout 0.0 | 98.18% | 0.0815 | 95.24% | 98.41% | 96.62% | - |
+| **Skenario 4** | **Dropout 0.3** | **98.18%** | **0.0500** | **95.24%** | **98.41%** | **96.62%** | **CHAMPION (Loss 0.0500 Terendah)** 🌟 |
+| **Skenario 4** | **Dropout 0.5** | **98.18%** | **0.0759** | **98.85%** | **98.41%** | **98.60%** | **CHAMPION (Macro F1 & AUC 99.95%)** 🌟 |
 
 ---
 
