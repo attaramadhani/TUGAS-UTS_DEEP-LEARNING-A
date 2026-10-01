@@ -11,6 +11,11 @@ outputs/*
 !outputs/figures/
 outputs/figures/*
 !outputs/figures/cnn_architecture.png
+!outputs/figures/flops_and_parameters_comparison.png
+!outputs/figures/training_time_and_latency_comparison.png
+!outputs/figures/augmentation_visual_comparison.png
+!outputs/figures/champion_model_evaluation.png
+!outputs/figures/cm_stage4_dropout.png
 *.docx
 Laporan_Lengkap_UTS_DeepLearning_CNN.docx
 
