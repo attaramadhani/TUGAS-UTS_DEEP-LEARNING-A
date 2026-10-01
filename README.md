@@ -85,7 +85,6 @@ Model yang digunakan adalah arsitektur *Deep Convolutional Neural Network* modul
       [FINAL CHAMPION MODEL]
 ```
 
-### Rekapitulasi Metrik Evaluasi:
 | Skenario | Varian yang Diuji | Akurasi Uji | Loss Uji | Macro Precision | Macro Recall | Macro F1-Score | Status |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Skenario 1** | Split 70:15:15 | 92.73% | 0.1494 | 94.57% | 84.92% | 88.00% | - |
@@ -97,8 +96,35 @@ Model yang digunakan adalah arsitektur *Deep Convolutional Neural Network* modul
 | **Skenario 3** | RMSprop (lr=0.0005) | 90.91% | 0.2381 | 93.59% | 89.68% | 90.86% | - |
 | **Skenario 3** | SGD Momentum (lr=0.001)| 65.45% | 0.7920 | 44.95% | 46.83% | 44.17% | - |
 | **Skenario 4** | Dropout 0.0 | 98.18% | 0.0815 | 95.24% | 98.41% | 96.62% | - |
-| **Skenario 4** | **Dropout 0.3** | **98.18%** | **0.0500** | **95.24%** | **98.41%** | **96.62%** | **CHAMPION (Loss 0.0500 Terendah)** 🌟 |
-| **Skenario 4** | **Dropout 0.5** | **98.18%** | **0.0759** | **98.85%** | **98.41%** | **98.60%** | **CHAMPION (Macro F1 & AUC 99.95%)** 🌟 |
+| **Skenario 4** | Dropout 0.3 | 98.18% | 0.0500 | 95.24% | 98.41% | 96.62% | - |
+| **Skenario 4** | **Dropout 0.5 (Kuat)** | **98.18%** | **0.0759** | **98.85%** | **98.41%** | **98.60%** | **FINAL CHAMPION MODEL (Macro F1 98.60%, ROC-AUC 99.95%)** 🌟🏆 |
+
+---
+
+## 🎯 Pembahasan 5 Poin Revisi Dosen Pengampu
+Dokumentasi ini, notebook, kode program, serta dokumen laporan resmi telah diperbarui secara komprehensif untuk menjawab 5 butir masukan dosen pengampu (**Dr. Wahyudi Setiawan, S.Kom., M.Kom.**):
+
+1. **Perbandingan dengan Model VGG16 Asli & Klarifikasi Ukuran Dataset CT-Scan (~140 MB):**
+   - **Klarifikasi Format Medis:** Ukuran dataset mentah CT scan rumah sakit memang mencapai ratusan MB hingga gigabyte per pasien (format **3D Volumetric DICOM .dcm**, 300-800 irisan aksial, kedalaman 16-bit Hounsfield Units, total 100 GB–1 TB). Dataset riset **IQ-OTH/NCCD** oleh Alyasriy & AL-Huseiny (2020) mengurasi **1.097 irisan aksial 2D representatif** yang memuat lesi nodul terverifikasi dan parenkim bersih dalam format 8-bit PNG/JPEG (512×512) dengan *lung windowing*, sehingga total ukuran tepat **~140 MB** (standar benchmark CADx dunia seperti COVID-CT dan CheXpert).
+   - **Benchmark VGG16 Asli (Simonyan, 2014):** Arsitektur Custom CNN kita (1,29 juta parameter) dibandingkan langsung dengan arsitektur standar VGG16 Asli (65,07 juta parameter pada input 128×128 atau 134,27 juta parameter pada input 224×224). Custom CNN terbukti **50.4x lebih ringkas**, **24.7x lebih hemat FLOPs**, dan **7.8x lebih cepat inferensi**.
+
+2. **Analisis Ilmiah & Radiologis Mengapa Akurasi Anjlok Setelah Augmentasi (67.27%):**
+   - **Pelanggaran Invariansi Spasial & Anatomi Medis:** *Horizontal flip* menghasilkan kondisi artifisial *situs inversus* / dekstrokardia palsu (paru kanan 3 lobus vs paru kiri 2 lobus). Transformasi *zoom* dan *shear* merusak batas spikulasi (*spiculated margins*) yang membedakan nodul jinak dengan karsinoma ganas. *Rotasi* menghilangkan orientasi aksial gravitasi dan mengaburkan mikrokalsifikasi.
+   - **Optimization Undertraining:** Augmentasi melipatgandakan variasi sampel menjadi ribuan citra dinamis yang belum sempat konvergen (*underfitting*) pada keterbatasan 8-15 epoch.
+
+3. **Confusion Matrix Berdampingan di Tiap Komputasi, Penambahan Epoch (15-20), dan Penurunan Learning Rate:**
+   - Ditambahkan grafik matriks konfusi komparatif berdampingan untuk masing-masing tahap: `cm_stage1_split.png`, `cm_stage2_augmentation.png`, `cm_stage3_optimizer.png`, dan `cm_stage4_dropout.png`.
+   - Kode notebook dan `main.py` menyediakan dukungan adaptif penambahan epoch (15-20) dan penurunan learning rate (`lr=0.0001` atau `ReduceLROnPlateau`/`CosineDecay`) seraya menjaga integritas Champion Model terkalibrasi.
+
+4. **Penghitungan Kompleksitas Komputasi & Sumber Daya Menggunakan FLOPs (Floating Point Operations):**
+   - Diimplementasikan fungsi analitis `calculate_model_flops()` per lapisan:
+     - **Custom Deep CNN:** **409,56 MFLOPs (0,410 GFLOPs)**, 203,95 MMACs, ukuran bobot ~4,92 MB.
+     - **VGG16 Asli (128x128):** **10.128,91 MFLOPs (10,13 GFLOPs)**, 5.061,49 MMACs, ukuran bobot ~248,21 MB.
+     - Rasio: Custom CNN **24.7x lebih hemat FLOPs**!
+
+5. **Transparansi Tampilan Waktu Pemrosesan di Setiap Tahap:**
+   - Setiap blok eksperimen (Skenario 1 s.d. 4) menampilkan durasi waktu komputasi pelatihan secara eksplisit.
+   - Disediakan grafik komparatif menyeluruh `training_time_and_latency_comparison.png` yang memuat waktu komputasi 11 variasi model, rata-rata per tahap, dan latensi inferensi *real-time* (**2.01 ms / citra = 497 FPS** vs VGG16 **15.74 ms / citra = 63 FPS**).
 
 ---
 
